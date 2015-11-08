@@ -11,11 +11,11 @@ classdef IFDBServer
         end
         function data = retrieveData(obj,varargin)
             if nargin == 3
-                filename = [varargin{1},'_',varargin{2}];
+                filename = [varargin{1},'_',varargin{2},'.csv'];
             else
                 filename = varargin{1};
             end
-            sqlCommand = ['select 时间,成交量,成交额,卖5价,卖4价,卖3价,卖2价,卖1价,买1价,买2价,买3价,买4价,买5价,卖5量,卖4量,卖3量,卖2量,卖1量,买1量,买2量,买3量,买4量,买5量 from ',filename,'.csv'];
+            sqlCommand = ['select 时间,成交量,成交额,卖5价,卖4价,卖3价,卖2价,卖1价,买1价,买2价,买3价,买4价,买5价,卖5量,卖4量,卖3量,卖2量,卖1量,买1量,买2量,买3量,买4量,买5量 from ',filename];
             obj.curs = exec(obj.db, sqlCommand);
             obj.curs = fetch(obj.curs);
             rawData = obj.curs.Data;
