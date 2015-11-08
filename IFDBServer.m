@@ -9,14 +9,25 @@ classdef IFDBServer
         function obj = IFDBServer(DBName)
             obj.db = database(DBName,'','');
         end
-        function data = retrieveData(obj,date,code)
-            sqlCommand = ['select 时间,成交量,成交额,卖5价,卖4价,卖3价,卖2价,卖1价,买1价,买2价,买3价,买4价,买5价,卖5量,卖4量,卖3量,卖2量,卖1量,买1量,买2量,买3量,买4量,买5量 from ',date,'_',code,'.csv'];
+        function data = retrieveData(obj,varargin)
+            if nargin == 3
+                filename = [varargin{1},'_',varargin{2}];
+            else
+                filename = varargin{1};
+            end
+            sqlCommand = ['select 时间,成交量,成交额,卖5价,卖4价,卖3价,卖2价,卖1价,买1价,买2价,买3价,买4价,买5价,卖5量,卖4量,卖3量,卖2量,卖1量,买1量,买2量,买3量,买4量,买5量 from ',filename,'.csv'];
             obj.curs = exec(obj.db, sqlCommand);
             obj.curs = fetch(obj.curs);
             rawData = obj.curs.Data;
             
-            data.name = code;
-            data.date = date;
+            if nargin == 3
+                data.name = varargin{2};
+                data.date = varargin{1};
+            else
+                str = regexp(varargin{1},'[\._]','split');
+                data.name = str{2};
+                data.date = str{1};
+            end
             data.time = cell2mat(rawData(2:end,1));
             data.volume = cell2mat(rawData(2:end,2));
             data.turnover = cell2mat(rawData(2:end,3));
@@ -42,6 +53,7 @@ classdef IFDBServer
             data.bSize4 = cell2mat(rawData(2:end,22));
             data.bSize5 = cell2mat(rawData(2:end,23));
         end
+        
         function obj = set.curs(obj,curs)
             obj.curs = curs;
         end
