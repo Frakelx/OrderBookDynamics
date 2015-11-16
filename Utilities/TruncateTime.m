@@ -1,7 +1,7 @@
 clc;clear;
 
-sourcePath = 'D:\HKUST\Orderbook Dynamics\sandbox\Index Future Tick Data\MatData';
-targetPath = 'D:\HKUST\Orderbook Dynamics\sandbox\Index Future Tick Data\TruncatedData';
+sourcePath = '.\Index Future Tick Data\MatData';
+targetPath = '.\Index Future Tick Data\TruncatedData';
 startTime = 93000000;
 stopTime = 150000000;
 if(~exist(targetPath,'dir'))

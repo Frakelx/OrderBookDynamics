@@ -1,5 +1,5 @@
-sourcePath = 'D:\HKUST\Orderbook Dynamics\sandbox\Index Future Tick Data\DataBase';
-targetPath = 'D:\HKUST\Orderbook Dynamics\sandbox\Index Future Tick Data\MatData';
+sourcePath = '.\Index Future Tick Data\DataBase';
+targetPath = '.\Index Future Tick Data\MatData';
 
 if(~exist(targetPath,'dir'))
     mkdir(targetPath);

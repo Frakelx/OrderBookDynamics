@@ -1,4 +1,4 @@
-path = 'D:\HKUST\Orderbook Dynamics\sandbox\Index Future Tick Data\DataBase';
+path = '.\Index Future Tick Data\DataBase';
 
 load('DateList.mat');
 dataServer = IFDBServer('IFDB');

@@ -1,7 +1,7 @@
 clc;clear;
 
-sourcePath = 'E:\Projects\CITIC\OrderBookDynamics\Index Future Tick Data\MatData';
-targetPath = 'E:\Projects\CITIC\OrderBookDynamics\Index Future Tick Data\TruncatedData';
+sourcePath = '.\Index Future Tick Data\MatData';
+targetPath = '.\Index Future Tick Data\TruncatedData';
 startTime = 93000000;
 stopTime = 150000000;
 if(~exist(targetPath,'dir'))
@@ -81,7 +81,7 @@ for i = 1:length(files)
 %         end
         
         
-    end
+%    end
     
     data = effectiveData;
     
