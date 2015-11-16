@@ -37,8 +37,8 @@ for i = 1:length(files)
 %%% we assume ask1 (bid1) is ask1 (bid1); whereas ask2 (bid2) is askN (bidN), where N = [(ask2Price - ask1Price)/0.2 + 1]. It is same for ask3, ask4 and ask5
 %%% Then we obtain standard orderbook where ask(N)Price - ask(N-1)Price = 1 tick
     effectiveData.Spread = effectiveData.askPrice(:,1) - effectiveData.bidPrice(:,1);   %%% bid-ask spread
-    effectiveData.askDst = floor((effectiveData.askPrice - repmat(effectiveData.askPrice(:,1), 1, 5))./0.2 + 1);    %%% distance away from ask1 (ticks)
-    effectiveData.bidDst = floor((effectiveData.bidPrice - repmat(effectiveData.bidPrice(:,1), 1, 5))./0.2 - 1);    %%% distance away from bid1 (ticks)
+    effectiveData.askDst = round((effectiveData.askPrice - repmat(effectiveData.askPrice(:,1), 1, 5))./0.2 + 1);    %%% distance away from ask1 (ticks)
+    effectiveData.bidDst = round((effectiveData.bidPrice - repmat(effectiveData.bidPrice(:,1), 1, 5))./0.2 - 1);    %%% distance away from bid1 (ticks)
     effectiveData.askOrderbook = zeros(length(effectiveData.Spread),max(effectiveData.askDst(:,5)));
     effectiveData.bidOrderbook = zeros(length(effectiveData.Spread), -min(effectiveData.bidDst(:,5)));
     
@@ -48,6 +48,8 @@ for i = 1:length(files)
     for j = 1:length(effectiveData.bidOrderbook)
         effectiveData.bidOrderbook(j,abs(effectiveData.bidDst(j,:))) = effectiveData.bidSize(j,:);
     end
+    
+    
     
 %%% Market Sell Order (MSO), Market Buy Order (MBO) arrival
 %%% Limit Sell Order (LSO), Limit Buy Order (LBO) insertion and
@@ -84,6 +86,8 @@ for i = 1:length(files)
 %    end
     
     data = effectiveData;
-    
+    if (i == 370)
+        continue
+    end
     save([targetPath, '\', files(i).name], 'data');
 end
