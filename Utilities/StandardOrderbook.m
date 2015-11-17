@@ -53,41 +53,62 @@ for i = 1:length(files)
     
 %%% Market Sell Order (MSO), Market Buy Order (MBO) arrival
 %%% Limit Sell Order (LSO), Limit Buy Order (LBO) insertion and
-%%% Cancellation (Cancel)
-%     effectiveData.MSO = zeros(length(effectiveData.time));
-%     effectiveData.MBO = zeros(length(effectiveData.time));
-%     effectiveData.LSO = zeros(length(effectiveData.time), max(effectiveData.askDst(:,5)));
-%     effectiveData.LBO = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
-%     effectiveData.Cancel = zeros(lenght(effectiveData.time), 
-%     
-%     for j = 1:length(effectiveData.time)
-%         if(effectiveData.volume(j) == 0 || j == 1)  %%% if volume = 0, any order is NOT placed.
-%             effectiveData.MSO(j) = 0;
-%             effectiveData.MBO(j) = 0;
-%             effectiveData.LSO(j,:) = 0;
-%             effectiveData.LBO(j,:) = 0;
-%             effectiveData.Cancel(j,:) = 0;   
-%         elseif(effectiveData.midQuote(j) == effectiveData.midQuote(j-1) && j > 1 ) %%% mid-quote stays the same
-%             ratio = effectiveData.vwap(j)/effectiveData.midQuote(j);
-%             if(ratio > 1)
-%                 effectiveData.MSO(j) = 0;
-%                 effectiveData.MBO(j) = effectiveData.volume(j);
-%             elseif(ratio < 1)
-%                 effectiveData.MSO(j) = effectiveData.volume(j);
-%                 effectiveData.MBO(j) = 0;
-%             else
-%                 effectiveData.MSO(j) = floor(effectiveData.volume(j)/2);
-%                 effectiveData.MBO(j) = floor(effectiveData.volume(j)/2);
-%             end
-% 
-%         end
+%%% Sell Cancellation (SCancel), Buy Cancellation (BCancel).
+     effectiveData.MSO = zeros(length(effectiveData.time),1);
+     effectiveData.MBO = zeros(length(effectiveData.time),1);
+     effectiveData.LSO = zeros(length(effectiveData.time), max(effectiveData.askDst(:,5)));
+     effectiveData.LBO = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
+     effectiveData.SCancel = zeros(length(effectiveData.time), max(effectiveData.askDst(:,5)));
+     effectiveData.BCancel = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
+     for j = 1:length(effectiveData.time)
+         if(effectiveData.volume(j) == 0 || j == 1)  %%% if volume = 0, any order is NOT placed.
+            effectiveData.MSO(j) = 0;
+            effectiveData.MBO(j) = 0;
+            effectiveData.LSO(j,:) = 0;
+            effectiveData.LBO(j,:) = 0;
+            effectiveData.SCancel(j,:) = 0;   
+            effectiveData.BCancel(j,:) = 0;
+        elseif(effectiveData.midQuote(j) == effectiveData.midQuote(j-1) && j > 1 ) %%% mid-quote stays the same
+            ratio = effectiveData.vwap(j)/effectiveData.midQuote(j);
+            %%% Calculation of Mkt Order
+            if(ratio > 1)
+                effectiveData.MSO(j) = 0;
+                effectiveData.MBO(j) = effectiveData.volume(j);
+            elseif(ratio < 1)
+                effectiveData.MSO(j) = effectiveData.volume(j);
+                effectiveData.MBO(j) = 0;
+            else
+                effectiveData.MSO(j) = round(effectiveData.volume(j)/2);
+                effectiveData.MBO(j) = round(effectiveData.volume(j)/2);
+            end
+            %%% Calculation of Limit Order Insertion and Cancellation
+            effectiveData.LSO(j,1) = max(effectiveData.askOrderbook(j,1) - effectiveData.askOrderbook(j-1,1) + effectiveData.MBO(j),0);
+            effectiveData.LSO(j,2:end) = max(effectiveData.askOrderbook(j,2:end) - effectiveData.askOrderbook(j-1,2:end),0);
+            effectiveData.LBO(j,1) = max(effectiveData.bidOrderbook(j,1) - effectiveData.bidOrderbook(j-1,1) + effectiveData.MSO(j),0);
+            effectiveData.LBO(j,2:end) = max(effectiveData.bidOrderbook(j,2:end) - effectiveData.bidOrderbook(j-1,2:end),0);
+            effectiveData.SCancel(j,1) = -min(effectiveData.askOrderbook(j,1) - effectiveData.askOrderbook(j-1,1) + effectiveData.MBO(j),0);
+            effectiveData.SCancel(j,2:end) = -min(effectiveData.askOrderbook(j,2:end) - effectiveData.askOrderbook(j-1,2:end),0);
+            effectiveData.BCancel(j,1) = -min(effectiveData.bidOrderbook(j,1) - effectiveData.bidOrderbook(j-1,1) + effectiveData.MSO(j),0);
+            effectiveData.BCancel(j,2:end) = -min(effectiveData.bidOrderbook(j,2:end) - effectiveData.bidOrderbook(j-1,2:end),0);
         
-        
-%    end
+         else %%% mid-quote changes
+             if(effectiveData.midQuote(j) > effectiveData.midQuote(j-1) && j > 1) %%% mid-quote increases
+                 effectiveData.LSO(j,:) = effectiveData.askOrderbook(j,:);
+                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
+                 effectiveData.BCancel(j,:) = effectiveData.bidOrderbook(j-1,:);
+                 effectiveData.SCancel(j,:) = max(sum(effectiveData.askOrderbook(j-1,:)) - effectiveData.volume(j),0);
+                 effectiveData.MBO(j,:) = effectiveData.volume(j);
+                
+             else
+                 effectiveData.LSO(j,:) = effectiveData.askOrderbook(j,:);
+                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
+                 effectiveData.SCancel(j,:) = effectiveData.askOrderbook(j-1,:);
+                 effectiveData.BCancel(j,:) = max(sum(effectiveData.bidOrderbook(j-1,:)) - effectiveData.volume(j),0);
+                 effectiveData.MSO(j,:) = effectiveData.volume(j);
+             end
+         end
+    end
     
     data = effectiveData;
-    if (i == 370)
-        continue
-    end
     save([targetPath, '\', files(i).name], 'data');
 end
