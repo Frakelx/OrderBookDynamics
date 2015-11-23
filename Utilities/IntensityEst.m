@@ -15,7 +15,7 @@ intensity.m1.BCancel = 0; intensity.m2.BCancel = 0;
 
 for i = 1:length(files)
 
-    load(files(i).name)
+    load([sourcePath, '\', files(i).name])
     popularity = popularity + length(data.time);
 
     %%% 1st moment
