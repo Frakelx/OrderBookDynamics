@@ -36,10 +36,7 @@ for i = 1:length(files)
     
     gapValue = diff(effectiveData.time);
     gapPosition = find(gapValue >500 & gapValue < 40500);
-    
-    display(effectiveData.time(gapPosition)');
-    display(gapValue(gapPosition)');
-    
+       
     for gap_I = 1:length(gapPosition)
         effectiveData.time = [effectiveData.time(1:gapPosition(gap_I));effectiveData.time(gapPosition(gap_I)).*ones(gapValue(gapPosition(gap_I))/500-1,1);effectiveData.time(gapPosition(gap_I)+1:end)];
         gapValue = [gapValue(1:gapPosition(gap_I));500.*ones(gapValue(gapPosition(gap_I))/500-1,1);gapValue(gapPosition(gap_I)+1:end)];
@@ -84,11 +81,18 @@ for i = 1:length(files)
     effectiveData.SCancel = zeros(length(effectiveData.time), max(effectiveData.askDst(:,5)));
     effectiveData.BCancel = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
     for j = 1:length(effectiveData.time)
-        if(effectiveData.volume(j) == 0 || j == 1)  %%% if volume = 0, any order is NOT placed.
+        if(effectiveData.volume(j) == 0)  %%% if volume = 0, any order is NOT placed.
             effectiveData.MSO(j) = 0;
             effectiveData.MBO(j) = 0;
             effectiveData.LSO(j,:) = 0;
             effectiveData.LBO(j,:) = 0;
+            effectiveData.SCancel(j,:) = 0;
+            effectiveData.BCancel(j,:) = 0;
+        elseif(j == 1)
+            effectiveData.MSO(j) = 0;
+            effectiveData.MBO(j) = 0;
+            effectiveData.LSO(j,:) = effectiveData.askOrderbook(j,:);
+            effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
             effectiveData.SCancel(j,:) = 0;
             effectiveData.BCancel(j,:) = 0;
         elseif(effectiveData.midQuote(j) == effectiveData.midQuote(j-1) && j > 1 ) %%% mid-quote stays the same
@@ -119,14 +123,24 @@ for i = 1:length(files)
                 effectiveData.LSO(j,:) = effectiveData.askOrderbook(j,:);
                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
                 effectiveData.BCancel(j,:) = effectiveData.bidOrderbook(j-1,:);
-                effectiveData.SCancel(j,:) = max(sum(effectiveData.askOrderbook(j-1,:)) - effectiveData.volume(j),0);
+                volume = effectiveData.volume(j);
+                for k = 1:length(effectiveData.SCancel(j,:))         
+                    effectiveData.SCancel(j,k) = max(effectiveData.askOrderbook(j-1,k) - volume,0);
+                    volume = volume - effectiveData.askOrderbook(j-1,k);
+                end
+                clear volume;
                 effectiveData.MBO(j,:) = effectiveData.volume(j);
                 
             else
                 effectiveData.LSO(j,:) = effectiveData.askOrderbook(j,:);
                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
                 effectiveData.SCancel(j,:) = effectiveData.askOrderbook(j-1,:);
-                effectiveData.BCancel(j,:) = max(sum(effectiveData.bidOrderbook(j-1,:)) - effectiveData.volume(j),0);
+                volume = effectiveData.volume(j);
+                for k = 1:length(effectiveData.BCancel(j,:))         
+                    effectiveData.BCancel(j,k) = max(effectiveData.bidOrderbook(j-1,k) - volume,0);
+                    volume = volume - effectiveData.bidOrderbook(j-1,k);
+                end
+                clear volume;
                 effectiveData.MSO(j,:) = effectiveData.volume(j);
             end
         end
