@@ -36,7 +36,7 @@ for i = 1:length(files)
     
     gapValue = diff(effectiveData.time);
     gapPosition = find(gapValue >500 & gapValue < 40500);
-       
+    
     for gap_I = 1:length(gapPosition)
         effectiveData.time = [effectiveData.time(1:gapPosition(gap_I));effectiveData.time(gapPosition(gap_I)).*ones(gapValue(gapPosition(gap_I))/500-1,1);effectiveData.time(gapPosition(gap_I)+1:end)];
         gapValue = [gapValue(1:gapPosition(gap_I));500.*ones(gapValue(gapPosition(gap_I))/500-1,1);gapValue(gapPosition(gap_I)+1:end)];
@@ -80,14 +80,16 @@ for i = 1:length(files)
     effectiveData.LBO = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
     effectiveData.SCancel = zeros(length(effectiveData.time), max(effectiveData.askDst(:,5)));
     effectiveData.BCancel = zeros(length(effectiveData.time), -min(effectiveData.bidDst(:,5)));
+    ratio = effectiveData.vwap./effectiveData.midQuote;
     for j = 1:length(effectiveData.time)
         if(effectiveData.volume(j) == 0)  %%% if volume = 0, any order is NOT placed.
-            effectiveData.MSO(j) = 0;
-            effectiveData.MBO(j) = 0;
-            effectiveData.LSO(j,:) = 0;
-            effectiveData.LBO(j,:) = 0;
-            effectiveData.SCancel(j,:) = 0;
-            effectiveData.BCancel(j,:) = 0;
+            continue;
+            %             effectiveData.MSO(j) = 0;
+            %             effectiveData.MBO(j) = 0;
+            %             effectiveData.LSO(j,:) = 0;
+            %             effectiveData.LBO(j,:) = 0;
+            %             effectiveData.SCancel(j,:) = 0;
+            %             effectiveData.BCancel(j,:) = 0;
         elseif(j == 1)
             effectiveData.MSO(j) = 0;
             effectiveData.MBO(j) = 0;
@@ -96,12 +98,12 @@ for i = 1:length(files)
             effectiveData.SCancel(j,:) = 0;
             effectiveData.BCancel(j,:) = 0;
         elseif(effectiveData.midQuote(j) == effectiveData.midQuote(j-1) && j > 1 ) %%% mid-quote stays the same
-            ratio = effectiveData.vwap(j)/effectiveData.midQuote(j);
+            %ratio = effectiveData.vwap(j)/effectiveData.midQuote(j);
             %%% Calculation of Mkt Order
-            if(ratio > 1)
+            if(ratio(j) > 1)
                 effectiveData.MSO(j) = 0;
                 effectiveData.MBO(j) = effectiveData.volume(j);
-            elseif(ratio < 1)
+            elseif(ratio(j) < 1)
                 effectiveData.MSO(j) = effectiveData.volume(j);
                 effectiveData.MBO(j) = 0;
             else
@@ -124,7 +126,7 @@ for i = 1:length(files)
                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
                 effectiveData.BCancel(j,:) = effectiveData.bidOrderbook(j-1,:);
                 volume = effectiveData.volume(j);
-                for k = 1:length(effectiveData.SCancel(j,:))         
+                for k = 1:length(effectiveData.SCancel(j,:))
                     effectiveData.SCancel(j,k) = max(effectiveData.askOrderbook(j-1,k) - volume,0);
                     volume = max(volume - effectiveData.askOrderbook(j-1,k),0);
                 end
@@ -136,7 +138,7 @@ for i = 1:length(files)
                 effectiveData.LBO(j,:) = effectiveData.bidOrderbook(j,:);
                 effectiveData.SCancel(j,:) = effectiveData.askOrderbook(j-1,:);
                 volume = effectiveData.volume(j);
-                for k = 1:length(effectiveData.BCancel(j,:))         
+                for k = 1:length(effectiveData.BCancel(j,:))
                     effectiveData.BCancel(j,k) = max(effectiveData.bidOrderbook(j-1,k) - volume,0);
                     volume = max(volume - effectiveData.bidOrderbook(j-1,k),0);
                 end

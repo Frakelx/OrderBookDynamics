@@ -2,34 +2,30 @@ clc;clear;
 
 sourcePath = '.\Index Future Tick Data\TruncatedData';
 
-timeScale = 1;  % minute, you can adjust it
+timeScale = 60;  % second, you can adjust it
 
-timeScale = timeScale*100000;
-timeFlag = ...
-    [93000050, 100000050, 110000050, 130000050, 140000050; ...
-    96000050, 106000050, 113000050, 136000050, 146000050];
+timeSteps = seconds(timeScale);
 
 files = dir([sourcePath,'\*.mat']);
 
-Orders.outflow = zeros(length(files)*240/(timeScale/100000),1);
+Orders.outflow = zeros(length(files)*14400/timeScale,1);
 Orders.inflow = Orders.outflow;
 Orders.volume = Orders.outflow;
 counter = 1;
-
+timeFlag = [datetime(2001,01,01,9,30,00),datetime(2001,01,01,11,30,00); ...
+                datetime(2001,01,01,13,00,00),datetime(2001,01,01,15,00,00)];
+            
 for fIndex = 1:length(files)
     load([sourcePath,'\',files(fIndex).name]);
     
-    for i = 1:5
-        timeGrid = timeFlag(1,i):timeScale:timeFlag(2,i);
+    for i = 1:2
+        timeGrid = timeFlag(i,1):timeSteps:timeFlag(i,2);
         for tIndex = 1:length(timeGrid)-1
-            index = find(data.time>=timeGrid(tIndex) & data.time<timeGrid(tIndex+1));
+            index = find(data.FullTime>=timeGrid(tIndex) & data.FullTime<timeGrid(tIndex+1));
             if(isempty(index))
                 continue;
             end
-            %Orders.inflow(counter) = sum(sum(data.LSO(index,:)))+sum(sum(data.LBO(index,:)));
-            %Orders.outflow(counter) = sum(sum(data.BCancel(index,:)))+sum(sum(data.SCancel(index,:))) ...
-            %+sum(data.MSO(index)+data.MBO(index));
-            %Orders.volume(counter) = sum(data.volume(index));
+            
             Orders.inflow(counter) = sum(data.orderInflow(index));
             Orders.outflow(counter) = sum(data.orderOutflow(index));
             Orders.volume(counter) = sum(data.volume(index));
@@ -46,4 +42,4 @@ figure;
 scatter(Orders.inflow, Orders.outflow);hold on;
 xlabel('Order inflow');
 ylabel('Order outflow');
-title(' 1 minute ');
+title(' 30 s ');
