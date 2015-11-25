@@ -105,8 +105,8 @@ for i = 1:length(files)
                 effectiveData.MSO(j) = effectiveData.volume(j);
                 effectiveData.MBO(j) = 0;
             else
-                effectiveData.MSO(j) = round(effectiveData.volume(j)/2);
-                effectiveData.MBO(j) = round(effectiveData.volume(j)/2);
+                effectiveData.MSO(j) = ceil(effectiveData.volume(j)/2);
+                effectiveData.MBO(j) = floor(effectiveData.volume(j)/2);
             end
             %%% Calculation of Limit Order Insertion and Cancellation
             effectiveData.LSO(j,1) = max(effectiveData.askOrderbook(j,1) - effectiveData.askOrderbook(j-1,1) + effectiveData.MBO(j),0);
@@ -126,7 +126,7 @@ for i = 1:length(files)
                 volume = effectiveData.volume(j);
                 for k = 1:length(effectiveData.SCancel(j,:))         
                     effectiveData.SCancel(j,k) = max(effectiveData.askOrderbook(j-1,k) - volume,0);
-                    volume = volume - effectiveData.askOrderbook(j-1,k);
+                    volume = max(volume - effectiveData.askOrderbook(j-1,k),0);
                 end
                 clear volume;
                 effectiveData.MBO(j,:) = effectiveData.volume(j);
@@ -138,7 +138,7 @@ for i = 1:length(files)
                 volume = effectiveData.volume(j);
                 for k = 1:length(effectiveData.BCancel(j,:))         
                     effectiveData.BCancel(j,k) = max(effectiveData.bidOrderbook(j-1,k) - volume,0);
-                    volume = volume - effectiveData.bidOrderbook(j-1,k);
+                    volume = max(volume - effectiveData.bidOrderbook(j-1,k),0);
                 end
                 clear volume;
                 effectiveData.MSO(j,:) = effectiveData.volume(j);
